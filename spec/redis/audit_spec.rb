@@ -17,8 +17,21 @@ describe Redis, "Audit" do
       end
     end
   end
-  describe "single commands" do
-    
+  describe "last command" do
+    let (:example_commands) do 
+      [
+       ['set', 'abc', 'aval'],
+       ['get', 'abc'],
+       ['lpush', 'def', 'aval'],
+       ['lrange', 'def', '0', '-1']
+      ]
+    end
+    it "returns the last command array" do
+      example_commands.each do |command|
+        subject.call_command command
+        subject.last_command.should == command
+      end
+    end
   end
   describe "in audit" do
     it "returns true if asked if auditing" 
