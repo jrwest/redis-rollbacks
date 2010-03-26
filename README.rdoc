@@ -1,8 +1,8 @@
 when testing an application using Redis there is no way to have atomic examples. Operation effects remain in the database between examples. This is a first step into possibly changing that.
 
-### Example
+=== Example
 
-#### Rolling Back a SET that creates a key
+==== Rolling Back a SET that creates a key
    
    require 'redis'
    require 'redis-rollbacks'  
