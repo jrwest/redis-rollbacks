@@ -33,6 +33,28 @@ describe Redis, "Audit" do
       end
     end
   end
+  describe "last command effect" do
+    it "is :none if GET command access a key" do
+      subject.set 'key', 'def'
+      subject.get 'key'
+      subject.last_effect == :none
+    end
+    it "is :create if SET command creates a key" do
+      subject.delete 'key'
+      subject.call_command ['set', 'key', 'abc']
+      subject.last_effect.should == :create
+    end
+    it "is :update if SET command updates a key" do
+      subject.set 'key', 'def'
+      subject.set 'key', 'def'
+      subject.last_effect.should == :update
+    end
+    it "is :destroy if DELETE command is called on a key" do
+      subject.set 'key', 'def'
+      subject.delete 'key'
+      subject.last_effect.should == :destroy
+    end
+  end
   describe "in audit" do
     it "returns true if asked if auditing" 
   end
