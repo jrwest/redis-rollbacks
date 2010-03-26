@@ -9,8 +9,8 @@ module Redis::Rollbacks
   }
 
   def rollback_last
-    if ROLLBACK_PROCESSOR.has_key?(last_command[0])
-      ROLLBACK_PROCESSOR[last_command[0]].call(self, last_effect, *last_command[1..last_command.size-1])
+    if ROLLBACK_PROCESSOR.has_key?(last_command[0].to_s)
+      ROLLBACK_PROCESSOR[last_command[0].to_s].call(self, last_effect, *last_command[1..last_command.size-1])
     end
   end
 end                                                      
