@@ -58,6 +58,18 @@ describe Redis, "Audit" do
       subject.last_effect.should == :destroy
     end
   end
+  describe "previous state" do
+    context "when updating a value" do
+      it "returns the value before a SET" do
+        subject.delete 'key'
+        subject.set 'key', 'a'
+        subject.last_value('key').should be_nil
+        subject.set 'key', 'b'
+        subject.last_value('key').should == 'a'
+        subject.get('key').should == 'b'
+      end
+    end
+  end
   describe "in audit" do
     it "returns true if asked if auditing" 
   end
