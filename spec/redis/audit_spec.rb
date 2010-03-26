@@ -35,9 +35,12 @@ describe Redis, "Audit" do
   end
   describe "last command effect" do
     it "is :none if GET command access a key" do
-      subject.set 'key', 'def'
       subject.get 'key'
-      subject.last_effect == :none
+      subject.last_effect.should == :none
+    end
+    it "is :none if RANDOMKEY command is called" do
+      subject.randomkey
+      subject.last_effect.should == :none
     end
     it "is :create if SET command creates a key" do
       subject.delete 'key'

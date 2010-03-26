@@ -1,5 +1,5 @@
 module Redis::Audit
-  NO_EFFECT_COMMANDS = %w[get]
+  NO_EFFECT_COMMANDS = %w[get randomkey]
   DESTRUCTIVE_COMMANDS = %w[delete]
   def self.included(base)
     base.send(:attr_reader, :last_command, :last_effect)
