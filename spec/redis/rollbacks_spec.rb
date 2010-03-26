@@ -9,7 +9,12 @@ describe Redis, "Rollbacks" do
         subject.rollback_last 
         subject.get('key').should be_nil
       end
-      it "restores the previous value of a key updated by set" 
+      it "restores the previous value of a key updated by set" do
+        subject.set 'key', 'abc'
+        subject.set 'key', 'def'
+        subject.rollback_last
+        subject.get('key').should == 'abc'
+      end
     end
   end
 end

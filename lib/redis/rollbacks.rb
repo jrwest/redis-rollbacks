@@ -4,6 +4,8 @@ module Redis::Rollbacks
       case type
       when :create
         client.delete args[0]
+      when :update
+        client.set args[0], client.last_value(args[0])
       end
     }
   }
