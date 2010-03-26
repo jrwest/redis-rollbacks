@@ -11,11 +11,10 @@ describe Redis, "Audit" do
     end
     context "with multiple arguments" do
       it "returns a string with the command and each argument separated by a space" do
-
+        subject.serialize_command(['set', 'mykey', 'myvalue']).should == 'set mykey myvalue'
+        subject.serialize_command(['set', 'anotherkey', 'anothervalue']).should == 'set anotherkey anothervalue'
+        subject.serialize_command(['lpush', 'alist', 1]).should == 'lpush alist 1'
       end
-    end
-    context "when command is invalid" do
-
     end
   end
   describe "single commands" do
