@@ -96,7 +96,12 @@ describe Redis, "Audit" do
         subject.set 'abc', '123'
         subject.last_command(1).should == ['set', 'abc', '123']
       end
-      it "returns an array of last command arrays with the last 2 commands given the argument 2"
+      it "returns an array of last command arrays with the last 3 commands given the argument 3" do
+        subject.last_command(3).should == example_commands.reverse[0...3]
+      end
+      it "returns the entire array of last commands when the argument is greater than the number of commands in the audit" do
+        subject.last_command(10).should == example_commands.reverse
+      end
     end
   end
   describe "after audit" do

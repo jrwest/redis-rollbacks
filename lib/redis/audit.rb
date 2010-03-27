@@ -27,10 +27,8 @@ module Redis::Audit
 
   def last_command(n = 1)
     if @audit_stack
-      commands = []
-      n.times do
-        commands << unserialize_command(@audit_stack.peek)
-      end
+      n = @audit_stack.size if n > @audit_stack.size
+      commands = @audit_stack.to_a[0...n].map { |c| unserialize_command(c) }
       commands.size > 1 ? commands : commands[0]
     else
       @last_command
