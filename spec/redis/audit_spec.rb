@@ -1,6 +1,14 @@
 require 'spec_helper'
 
 describe Redis, "Audit" do
+  let (:example_commands) do 
+    [
+     ['set', 'abc', 'aval'],
+     ['get', 'abc'],
+     ['lpush', 'def', 'aval'],
+     ['lrange', 'def', '0', '-1']
+    ]
+  end
   describe "serializing commands" do
     context "with a single argument" do
       it "returns a string with the command and argument separated by a space" do
@@ -17,15 +25,7 @@ describe Redis, "Audit" do
       end
     end
   end
-  describe "last command" do
-    let (:example_commands) do 
-      [
-       ['set', 'abc', 'aval'],
-       ['get', 'abc'],
-       ['lpush', 'def', 'aval'],
-       ['lrange', 'def', '0', '-1']
-      ]
-    end
+  describe "last command, no audit" do  
     it "returns the last command array" do
       example_commands.each do |command|
         subject.call_command command
@@ -71,7 +71,30 @@ describe Redis, "Audit" do
     end
   end
   describe "in audit" do
-    it "returns true if asked if auditing" 
+    before(:each) do
+      subject.start_audit
+      example_commands.each do |command|
+        subject.call_command command
+      end
+    end
+    after(:each) do
+      subject.stop_audit
+      subject.delete subject.audit_key
+    end
+    it "returns true if asked if auditing"
+    it "pushes each serialized command onto a stack" do
+      example_commands.map do |command|
+        subject.serialize_command(command)
+      end.reverse.should == subject.audit_stack.to_a
+    end
+    describe "last command" do
+      it "returns the last command array given no arguments" do
+        subject.set 'abc', '123'
+        subject.last_command.should == ['set', 'abc', '123']
+      end
+      it "returns the last command array given the argument 0"
+      it "returns an array of last command arrays with the last 2 commands given the argument 2"
+    end
   end
   describe "after audit" do
 

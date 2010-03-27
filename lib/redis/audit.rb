@@ -3,9 +3,13 @@ module Redis::Audit
   DESTRUCTIVE_COMMANDS = %w[delete]
   RECORD_PREVIOUS_COMMANDS = %w[set]
   def self.included(base)
-    base.send(:attr_reader, :last_command, :last_effect)
+    base.send(:attr_reader, :last_effect, :audit_stack)
     base.send(:alias_method, :call_command_without_audit, :call_command)
     base.send(:alias_method, :call_command, :call_command_with_audit)
+  end
+
+  def audit_key
+    'redis:audit'
   end
 
   def call_command_with_audit(argv)
@@ -13,19 +17,44 @@ module Redis::Audit
       record_value(argv[1])
     end
     command_return = call_command_without_audit(argv)
-    @last_command = argv
+    if @audit_stack
+      @audit_stack.push serialize_command(argv)
+    else
+      @last_command = argv
+    end
     command_return
+  end
+
+  def last_command
+    if @audit_stack
+      unserialize_command(@audit_stack.peek)
+    else
+      @last_command
+    end
   end
 
   def last_value(key)
     return unless @last_values
     @last_values[key]
   end
-
+  
   def serialize_command(argv)
     argv.join(' ')
   end
+  
+  def start_audit
+    @audit_stack = Stack.new(:db => self, :key => audit_key)
+  end
 
+  def stop_audit
+    @audit_stack = nil
+  end
+  
+  def unserialize_command(command)
+    command.split(' ')
+  end
+
+  # TODO #destroy
   class Stack
     attr_reader :key
 
@@ -39,16 +68,16 @@ module Redis::Audit
     end
     
     def peek
-      (@db.lrange key, 0, 0).first
+      (@db.call_command_without_audit ['lrange', key, 0, 0]).first
     end
     
     def pop
-      @db.lpop key
+      @db.call_command_without_audit ['lpop', key]
     end
     
     def push(*members)
       members.each do |member|
-        @db.lpush key, member
+        @db.call_command_without_audit ['lpush', key, member]
       end
     end
     
@@ -57,7 +86,7 @@ module Redis::Audit
     end
     
     def to_a
-      @db.lrange key, 0, -1
+      @db.call_command_without_audit ['lrange', key, 0, -1]
     end
   end
 
