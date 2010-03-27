@@ -40,8 +40,24 @@ when testing an application using Redis there is no way to have atomic examples.
    r.rollback_last
    r.get 'key' # 'abc'
 
+
+==== A DELETE operation on a string or key
+   r = Redis.new
+   r.set 'key', 'abc'
+   r.delete
+   r.last_effect # :destroy
+   r.rollback_last
+   r.get 'key' # 'abc'
+   r.delete 'key'
+   r.lpush 'key', 1
+   r.lpush 'key', 2
+   r.delete 'key'
+   r.rollback_last
+   r.lrange 'key', 0, -1 # ['2', '1']
+
 === Operations this has been tested again
 
    * SET
+   * DELETE (of strings and lists)
 
 yes I know but like I said this is just a concept for now
