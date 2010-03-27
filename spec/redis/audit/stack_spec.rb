@@ -48,6 +48,13 @@ describe Redis::Audit::Stack do
         subject.size.should == 3
       end
     end
+    
+  describe "#destroy" do
+    it "empties the stack" do
+        subject.destroy
+        subject.should be_empty
+    end
+  end
   end
   describe "#empty?" do
     it "returns true if has no members" do

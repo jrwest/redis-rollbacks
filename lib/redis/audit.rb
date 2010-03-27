@@ -47,6 +47,7 @@ module Redis::Audit
   end
 
   def stop_audit
+    @audit_stack.destroy
     @audit_stack = nil
   end
   
@@ -54,9 +55,12 @@ module Redis::Audit
     command.split(' ')
   end
 
-  # TODO #destroy
   class Stack
     attr_reader :key
+
+    def destroy
+      @db.call_command_without_audit ['delete', key]
+    end
 
     def empty?
       size == 0
