@@ -7,10 +7,6 @@ module Redis::Audit
     base.send(:alias_method, :call_command_without_audit, :call_command)
     base.send(:alias_method, :call_command, :call_command_with_audit)
   end
-  
-  def serialize_command(argv)
-    argv.join(' ')
-  end
 
   def call_command_with_audit(argv)
     if record_effect(argv) == :update && RECORD_PREVIOUS_COMMANDS.include?(argv[0].to_s) 
@@ -24,6 +20,45 @@ module Redis::Audit
   def last_value(key)
     return unless @last_values
     @last_values[key]
+  end
+
+  def serialize_command(argv)
+    argv.join(' ')
+  end
+
+  class Stack
+    attr_reader :key
+
+    def empty?
+      size == 0
+    end
+    
+    def initialize(options)
+      @key = options[:key]
+      @db = options[:db]
+    end
+    
+    def peek
+      (@db.lrange key, 0, 0).first
+    end
+    
+    def pop
+      @db.lpop key
+    end
+    
+    def push(*members)
+      members.each do |member|
+        @db.lpush key, member
+      end
+    end
+    
+    def size
+      to_a.size
+    end
+    
+    def to_a
+      @db.lrange key, 0, -1
+    end
   end
 
   private

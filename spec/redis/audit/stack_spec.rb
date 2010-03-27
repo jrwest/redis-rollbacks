@@ -1,13 +1,13 @@
 require 'spec_helper'
 
-describe Redis::Stack do
+describe Redis::Audit::Stack do
   before(:each) do
     @db = Redis.new
   end
   after(:each) do
     @db.delete 'my_stack'
   end
-  subject { Redis::Stack.new(:db => Redis.new, :key => 'my_stack') }
+  subject { Redis::Audit::Stack.new(:db => Redis.new, :key => 'my_stack') }
   describe "#push" do
     it "adds a member to the top of the stack" do
       subject.push('some_str')
