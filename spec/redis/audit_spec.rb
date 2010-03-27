@@ -92,12 +92,15 @@ describe Redis, "Audit" do
         subject.set 'abc', '123'
         subject.last_command.should == ['set', 'abc', '123']
       end
-      it "returns the last command array given the argument 0"
+      it "returns the last command array given the argument 1" do
+        subject.set 'abc', '123'
+        subject.last_command(1).should == ['set', 'abc', '123']
+      end
       it "returns an array of last command arrays with the last 2 commands given the argument 2"
     end
   end
   describe "after audit" do
-
+    
   end
   describe "logging" do
     context "when logger exists" do
