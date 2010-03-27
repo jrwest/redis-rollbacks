@@ -7,6 +7,16 @@ module Redis::Rollbacks
       when :update
         client.set args[0], client.last_value(args[0])
       end
+    },
+    "delete" => lambda { |client, type, *args| 
+      case client.last_value(args[0])
+      when String
+        client.set args[0], client.last_value(args[0])
+      when Array
+        client.last_value(args[0]).each do |member|
+          client.rpush args[0], member
+        end
+      end
     }
   }
 

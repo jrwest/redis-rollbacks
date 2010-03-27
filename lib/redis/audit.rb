@@ -1,7 +1,7 @@
 module Redis::Audit
   NO_EFFECT_COMMANDS = %w[get randomkey]
   DESTRUCTIVE_COMMANDS = %w[delete]
-  RECORD_PREVIOUS_COMMANDS = %w[set]
+  RECORD_PREVIOUS_COMMANDS = %w[set delete]
   def self.included(base)
     base.send(:attr_reader, :last_effect, :audit_stack)
     base.send(:alias_method, :call_command_without_audit, :call_command)
@@ -12,8 +12,9 @@ module Redis::Audit
     'redis:audit'
   end
 
+  # TODO refactor, refactor, refactor
   def call_command_with_audit(argv)
-    if record_effect(argv) == :update && RECORD_PREVIOUS_COMMANDS.include?(argv[0].to_s) 
+    if [:update, :destroy].include?(record_effect(argv)) && RECORD_PREVIOUS_COMMANDS.include?(argv[0].to_s) 
       record_value(argv[1])
     end
     command_return = call_command_without_audit(argv)
@@ -105,6 +106,8 @@ module Redis::Audit
     def record_value(key)
       @last_values ||= {}
       @last_values[key] = call_command_without_audit ['get', key]
+    rescue
+      @last_values[key] = call_command_without_audit ['lrange', key, 0, -1]
     end
 
     def effect_for(argv)

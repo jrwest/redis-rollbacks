@@ -35,6 +35,7 @@ describe Redis, "Audit" do
   end
   describe "last command effect" do
     it "is :none if GET command access a key" do
+      subject.set 'key', 'abc'
       subject.get 'key'
       subject.last_effect.should == :none
     end
@@ -67,6 +68,20 @@ describe Redis, "Audit" do
         subject.set 'key', 'b'
         subject.last_value('key').should == 'a'
         subject.get('key').should == 'b'
+      end
+    end
+    context "when deleting a value" do
+      it "returns a string if the deleted key had a string value" do
+        subject.set 'key', 'abc'
+        subject.delete 'key'
+        subject.last_value('key').should == 'abc'
+      end
+      it "returns an array if the delete key had a list value" do
+        subject.delete 'key'
+        subject.lpush 'key', 1
+        subject.lpush 'key', 2
+        subject.delete 'key'
+        subject.last_value('key').should == %w[2 1]
       end
     end
   end
