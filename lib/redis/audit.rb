@@ -20,7 +20,7 @@ module Redis::Audit
     if @audit_stack
       @audit_stack.push serialize_command(argv)
     else
-      @last_command = argv
+      @last_command = serialize_command(argv)
     end
     command_return
   end
@@ -31,7 +31,7 @@ module Redis::Audit
       commands = @audit_stack.to_a[0...n].map { |c| unserialize_command(c) }
       commands.size > 1 ? commands : commands[0]
     else
-      @last_command
+      unserialize_command(@last_command)
     end
   end
 
