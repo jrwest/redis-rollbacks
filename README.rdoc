@@ -1,16 +1,47 @@
 when testing an application using Redis there is no way to have atomic examples. Operation effects remain in the database between examples. This is a first step into possibly changing that.
 
-=== Example
+=== A Little History
 
-==== Rolling Back a SET that creates a key
-   
    require 'redis'
-   require 'redis-rollbacks'  
+   require 'redis-rollbacks'
 
+   r = Redis.new
+   r.set 'abc', '123'
+   r.last_command # ['set', 'abc', '123']
+
+   r.start_audit
+   r.set 'abc', '345'
+   r.lpush 'my_list', 'aval'
+   r.lpush 'my_list, 'aval2'
+   r.last_command # ['lpush', 'my_list', 'aval2']
+   r.last_command(1) # ['lpush', 'my_list', 'aval2']
+   r.last_command(2) # [['lpush', 'my_list', 'aval2'],['lpush', 'my_list', 'aval']]
+   r.get 'abc'
+   r.last_command(3) # [['get', 'abc'],['lpush', 'my_list', 'aval2'],['lpush', 'my_list', 'aval']]
+   r.stop_audit
+   r.last_command # ['set', 'abc', '123']
+
+=== Rolling Back
+==== a SET operation that creates a key
+   
    r = Redis.new 
    r.delete 'key' # just so you know its not there for purposes of this example
    r.set 'key', 'abc'
-   r.last_command # [:set, 'abc', 'key']
    r.last_effect  # :create
    r.rollback_last
    r.get 'key'    # nil 
+
+==== a SET operation that updates a key
+   
+   r = Redis.new
+   r.set 'key', 'abc'
+   r.set 'key', 'def'
+   r.last_effect # :update
+   r.rollback_last
+   r.get 'key' # 'abc'
+
+=== Operations this has been tested again
+
+   * SET
+
+yes I know but like I said this is just a concept for now
