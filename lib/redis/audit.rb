@@ -1,7 +1,7 @@
 module Redis::Audit
   NO_EFFECT_COMMANDS = %w[get randomkey]
   DESTRUCTIVE_COMMANDS = %w[delete]
-  RECORD_PREVIOUS_COMMANDS = %w[set delete]
+  RECORD_PREVIOUS_COMMANDS = %w[set delete lpush lpop rpush rpop]
   def self.included(base)
     base.send(:attr_reader, :last_effect, :audit_stack)
     base.send(:alias_method, :call_command_without_audit, :call_command)

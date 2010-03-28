@@ -61,13 +61,41 @@ describe Redis, "Audit" do
   end
   describe "previous state" do
     context "when updating a value" do
-      it "returns the value before a SET" do
+      before(:each) do
         subject.delete 'key'
+      end
+      it "returns the value before a SET" do
         subject.set 'key', 'a'
         subject.last_value('key').should be_nil
         subject.set 'key', 'b'
         subject.last_value('key').should == 'a'
         subject.get('key').should == 'b'
+      end
+      it "returns the state of the list before an LPUSH" do
+        subject.lpush 'key', 'a'
+        subject.lpush 'key', 'b'
+        subject.last_value('key').should == ['a']
+        subject.lpush 'key', 'c'
+        subject.last_value('key').should == ['b', 'a']
+      end
+      it "returns the state of the list before an LPOP" do
+        subject.lpush 'key', 'a'
+        subject.lpush 'key', 'b'
+        subject.lpop 'key'
+        subject.last_value('key').should == ['b', 'a']
+      end
+      it "returns the state of the list before an RPUSH" do
+        subject.rpush 'key', 'a'
+        subject.rpush 'key', 'b'
+        subject.last_value('key').should == ['a']
+        subject.rpush 'key', 'c'
+        subject.last_value('key').should == ['a', 'b']
+      end
+      it "returns the state of the list before an RPOP" do
+        subject.rpush 'key', 'a'
+        subject.rpush 'key', 'b'
+        subject.rpop 'key'
+        subject.last_value('key').should == ['a', 'b']
       end
     end
     context "when deleting a value" do
