@@ -3,8 +3,10 @@ require 'spec_helper'
 describe Redis, "Rollbacks" do
   context "single commands" do
     context "with effect" do
-      it "deletes a key created by the SET command" do
+      before(:each) do
         subject.delete 'key'
+      end
+      it "deletes a key created by the SET command" do
         subject.set 'key', 'abc'
         subject.rollback_last 
         subject.get('key').should be_nil
@@ -22,13 +24,18 @@ describe Redis, "Rollbacks" do
         subject.get('key').should == 'abc'
       end
       it "restores previous list members of key destroyed by DELETE command" do
-        subject.delete 'key'
         subject.lpush 'key', 1
         subject.lpush 'key', 2
         subject.delete 'key'
         subject.rollback_last
         subject.lrange('key', 0, -1).should == %w[2 1] 
       end
+      pending "takes a pushed member off a list operated on by LPUSH" do
+
+      end
+      it "takes a pushed member off a list operated on by RPUSH"
+      it "pushes a popped member off a list operated on by LPOP"
+      it "pushes a popped member off a list operated on by RPOP"
       context "in audit" do
         
       end
