@@ -105,9 +105,12 @@ module Redis::Audit
 
     def record_value(key)
       @last_values ||= {}
-      @last_values[key] = call_command_without_audit ['get', key]
-    rescue
-      @last_values[key] = call_command_without_audit ['lrange', key, 0, -1]
+      case call_command_without_audit ['type', key]
+      when 'string'
+        @last_values[key] = call_command_without_audit ['get', key]
+      when 'list'
+        @last_values[key] = call_command_without_audit ['lrange', key, 0, -1]
+      end
     end
 
     def effect_for(argv)
