@@ -30,12 +30,44 @@ describe Redis, "Rollbacks" do
         subject.rollback_last
         subject.lrange('key', 0, -1).should == %w[2 1] 
       end
-      pending "takes a pushed member off a list operated on by LPUSH" do
-
+      it "takes a pushed member off a list operated on by LPUSH" do
+        subject.lpush 'key', 'a'
+        subject.rollback_last
+        subject.lrange('key', 0, -1).should == []
+        subject.lpush 'key', 'a'
+        subject.lpush 'key', 'b'
+        subject.lpush 'key', 'c'
+        subject.rollback_last
+        subject.lrange('key', 0, -1).should == ['b', 'a']
       end
-      it "takes a pushed member off a list operated on by RPUSH"
-      it "pushes a popped member off a list operated on by LPOP"
-      it "pushes a popped member off a list operated on by RPOP"
+      it "takes a pushed member off a list operated on by RPUSH" do
+        subject.rpush 'key', 'a'
+        subject.rollback_last
+        subject.lrange('key', 0, -1).should == []
+        subject.rpush 'key', 'a'
+        subject.rpush 'key', 'b'
+        subject.rpush 'key', 'c'
+        subject.rollback_last
+        subject.lrange('key', 0, -1).should == ['a', 'b']
+      end
+      it "pushes a popped member off a list operated on by LPOP" do
+        subject.lpush 'key', 'a'
+        subject.lpop 'key'
+        subject.rollback_last
+        subject.lrange('key', 0, -1).should == ['a']
+      end
+      it "pushes a popped member off a list operated on by RPOP" do
+        subject.lpush 'key', 'a'
+        subject.lpush 'key', 'b'
+        subject.lpush 'key', 'c'
+        subject.rpop 'key'
+        subject.rollback_last
+        subject.lrange('key', 0, -1).should == ['c', 'b', 'a']
+        subject.rpop 'key'
+        subject.rpop 'key'
+        subject.rollback_last
+        subject.lrange('key', 0, -1).should == ['c', 'b']
+      end
       context "in audit" do
         
       end
